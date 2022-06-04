@@ -9,6 +9,7 @@ addresses = list(csv.reader(open('addresses.csv', encoding='utf-8-sig')))
 
 #load the distance into a distances variable using the csv module
 distances = list(csv.reader(open("distance_data.csv", encoding='utf-8-sig')))
+# function to return distance between package 1's address and the hub and vice versa
 #print(distances[addressInd(packageHashTable.search(1).address)][addressInd(truckOne.address)])
 
 # function to load all the data from the package.csv file into the package hash table object
@@ -50,8 +51,6 @@ truckTwo = Truck(datetime.timedelta(hours=8), "HUB", 0.0, 0)
 # packages that must be delivered on truck 2 plus 12 other packages
 listTruckTwoPackages = [3,18,36,38] + list(range(10,17)) + list(range(19,24))
 truckTwo.packages = [packageHashTable.search(i) for i in listTruckTwoPackages]
-# function to return distance between package 1's address and the hub and vice versa
-#print(distances[addressInd(packageHashTable.search(1).address)][addressInd(truckOne.address)])
 
 # packages that must be delivered on truck 2 plus 12 other packages
 listTruckTwoPackages = [3,18,36,38] + list(range(10,17)) + list(range(19,24))
@@ -62,14 +61,14 @@ ignore = listTruckTwoPackages + [6, 25, 28, 29]  #don't include delayed packages
 listTruckOnePackages = [i for i in range(1,35) if i not in ignore]  # list of 16 packages satisfying the above
 
 #define functions to load each truck
-#for truck one:
+#load function for truck one:
 def truckOneLoad(listOfPackages):
     truckPackages = []
     for packageId in listOfPackages:
         truckPackages.append(packageHashTable.search(packageId))
     return truckPackages
 
-# for truck 2
+# load function for truck 2
 def truckTwoLoad(listOfPackages):
     truckPackages = []
     for packageId in listOfPackages:
