@@ -56,5 +56,5 @@ class Truck:
         self.address = address
         self.mileage = mileage
         self.packages = packages
-    def __str__(self):  # overwite print(Movie) otherwise it will print object reference
+    def __str__(self):  # overwite print otherwise it will print object reference
         return "%s, %s, %s, %s" % (self.time, self.address, self.mileage, self.packages)
