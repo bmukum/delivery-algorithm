@@ -4,7 +4,7 @@ import datetime
 from operator import itemgetter, attrgetter
 from classes import *
 
-#load the address into an addresses variable using the csv module
+#load the addresses into a variable using the csv module
 addresses = list(csv.reader(open('addresses.csv', encoding='utf-8-sig')))
 
 #load the distance into a distances variable using the csv module
@@ -30,68 +30,54 @@ def loadPackageData(fileName):
                                   packageDeliveryDeadline, packageWeight, packageStatus, packageDeliveryTime)
             # insert it into the hash table
             packageHashTable.insert(packageID, packageInfo)
+          
+#Create new instance of package hash table from the class, and load the package into it.
+packageHashTable = HashTable()
+loadPackageData('package.csv')
 
-#create function to return the index of each address.
+#Function to return the index of an address to compute determine the packageID
 def addressInd(address):
     for item in addresses:
-        # print(item, address)
         if address in item[1]:
             return int(item[0])
     print(address)
 
-#Create new instance of package hash table from the class, and load objects into it
-packageHashTable = HashTable()
-loadPackageData('package.csv')
 
-#create truck 1 and 2 objects from the truck class
-truckOne = Truck(datetime.timedelta(hours=8), "HUB", 0.0, 0)
-truckTwo = Truck(datetime.timedelta(hours=8), "HUB", 0.0, 0)
-truckThree = Truck(datetime.timedelta(hours=9 minutes=10), "HUB", 0.0, 0)
+#Function to calculate the distance between a package address and the truck to determine the mileage and next location to deliver
+def distanceBetweenTruckPackages(packageID, truckAddress):
+  if distances[addressInd(packageHashTable.search(packageID).address)][addressInd(truckAddress)] == "":
+    return(float(distances[addressInd(truckAddress)][addressInd(packageHashTable.search(packageID).address)]))
+  else:
+    return float(distances[addressInd(packageHashTable.search(packageID).address)][addressInd(truckAddress)])
+    
+#create truck objects from the truck class to carry the packages
+truckOne = Truck(datetime.timedelta(hours=9), "HUB", 0.0, 0)
 
-# Packages that must be delivered on truck 2 plus 12 other packages.
-#listTruckTwoPackages = [3,18,15,36,38] + list(range(11,14)) + list(range(19,24))
-listTruckTwoPackages = [3,18,15,36,38] + list(range(11,24))
-truckTwo.packages = [packageHashTable.search(i) for i in listTruckTwoPackages]
+truckTwo = Truck(datetime.timedelta(hours=9), "HUB", 0.0, 0)
 
-ignore = listTruckTwoPackages + [5,17,24,27,32,35]
-listTruckOnePackages = [i for i in range(1,33) if i not in ignore]  # list of 16 packages satisfying the above
-ignore_2 = listTruckTwoPackages + listTruckOnePackages
+truckThree = Truck(datetime.timedelta(hours=8), "HUB", 0.0, 0)
 
-listTruckThreePackages = [i for i in range(1,41) if i not in ignore_2]
+#Determine the packages that get into the different trucks
+listTruckOnePackages = [4, 40, 6, 17, 31, 32, 35, 27, 13, 39]
 
-def truckOneLoad(listOfPackages):
-    truckPackages = []
-    for packageId in listOfPackages:
-        truckPackages.append(packageHashTable.search(packageId))
-    return truckPackages
+listTruckTwoPackages = [20, 21, 1, 28, 2, 33, 7, 29, 10, 5, 37, 38, 8, 9, 30, 3]
 
-# load function for truck 2
-def truckTwoLoad(listOfPackages):
-    truckPackages = []
-    for packageId in listOfPackages:
-        truckPackages.append(packageHashTable.search(packageId))
-    return truckPackages
+listTruckThreePackages = [14, 15, 16, 34, 26, 22, 24, 19, 36, 12, 23, 11, 18, 25]
 
-def truckThreeLoad(listOfPackages):
+#Function to load each truck with the list of packages from above
+def truckLoad(listOfPackages):
     truckPackages = []
     for packageId in listOfPackages:
         truckPackages.append(packageHashTable.search(packageId))
     return truckPackages
   
-# call load function to load the packages from listTruckOnePackages and sort them by delivery deadline
-truckOne.packages = sorted(truckOneLoad(listTruckOnePackages), key=attrgetter('zip'))
+# call load function to load the packages from the list of packages and sort them by delivery deadline and address
+truckOne.packages = sorted(truckLoad(listTruckOnePackages), key=lambda key: (key.delivery_deadline, key.address))
 
-truckTwo.packages = sorted(truckTwoLoad(listTruckTwoPackages), key=attrgetter('zip'))
+truckTwo.packages = sorted(truckLoad(listTruckTwoPackages), key=lambda key: (key.delivery_deadline, key.address))
 
-truckThree.packages = sorted(truckThreeLoad(listTruckThreePackages), key=attrgetter('zip'))
+truckThree.packages = (truckLoad(listTruckThreePackages))
 
-def distanceBetweenTruckPackages(packageID, truckAddress):
-
-  if distances[addressInd(packageHashTable.search(packageID).address)][addressInd(truckAddress)] == "":
-    return(float(distances[addressInd(truckAddress)][addressInd(packageHashTable.search(packageID).address)]))
-
-  else:
-    return float(distances[addressInd(packageHashTable.search(packageID).address)][addressInd(truckAddress)])
 
 
 print("Truck One's packages")
@@ -100,7 +86,7 @@ for package in truckOne.packages:
   truckOne.mileage += distanceBetweenTruckPackages(package.ID, truckOne.address)
   truckOne.address = package.address
   package.delivery_time = truckOne.time + datetime.timedelta(hours=float(truckOne.mileage/18))
-  print(package.ID, truckOne.mileage)
+  print(package.ID, truckOne.mileage, package.delivery_deadline, package.address, package.delivery_time)
   
 ui_time = datetime.timedelta(hours=9)
 for package in truckOne.packages:
@@ -113,17 +99,17 @@ for package in truckOne.packages:
   else:
     package.delivery_status = "Delivered"
   
-  print("Package", package.ID, "is ", package.delivery_status, "at", package.delivery_time, "with deadline", package.delivery_deadline)
+  #print("Package", package.ID, "is ", package.delivery_status, "at", package.delivery_time, "with deadline", package.delivery_deadline)
 print("Truck one mileage is", truckOne.mileage)
 #Truck two packages
 print("")
 print("Truck Two's packages")
 print("")
 for package in truckTwo.packages:
-  truckTwo.mileage += distanceBetweenTruckPackages(package.ID, truckOne.address)
+  truckTwo.mileage += distanceBetweenTruckPackages(package.ID, truckTwo.address)
   truckTwo.address = package.address
   package.delivery_time = datetime.timedelta(hours=8) + datetime.timedelta(hours=float(truckTwo.mileage/18))
-  print(package.ID, truckTwo.mileage)
+  print(package.ID, truckTwo.mileage, package.delivery_deadline, package.address,package.delivery_time)
   if ui_time < truckTwo.time:
     package.delivery_status = "Loaded"
 
@@ -132,7 +118,7 @@ for package in truckTwo.packages:
 
   else:
     package.delivery_status = "Delivered"
-    print("Package", package.ID, "is ", package.delivery_status, "at", package.delivery_time, "with deadline", package.delivery_deadline)
+    #print("Package", package.ID, "is ", package.delivery_status, "at", package.delivery_time, "with deadline", package.delivery_deadline)
 print("Truck two mileage is", truckTwo.mileage)
 
 
@@ -142,10 +128,10 @@ print("Truck Three's packages")
 print("")
 
 for package in truckThree.packages:
-  truckThree.mileage += distanceBetweenTruckPackages(package.ID, truckOne.address)
+  truckThree.mileage += distanceBetweenTruckPackages(package.ID, truckThree.address)
   truckThree.address = package.address
   package.delivery_time = datetime.timedelta(hours=8) + datetime.timedelta(hours=float(truckThree.mileage/18))
-  print(package.ID, truckThree.mileage)
+  print(package.ID, truckThree.mileage, package.delivery_deadline, package.address,package.delivery_time)
   if ui_time < truckThree.time:
     package.delivery_status = "Loaded"
 
@@ -155,7 +141,7 @@ for package in truckThree.packages:
   else:
     package.delivery_status = "Delivered"
   
-  print("Package", package.ID, "is ", package.delivery_status, "at", package.delivery_time, "with deadline", package.delivery_deadline)
+  #print("Package", package.ID, "is ", package.delivery_status, "at", package.delivery_time, "with deadline", package.delivery_deadline)
   #print("Package", package.ID, "was delivered at ", package.delivery_time)
 print("Truck three mileage is", truckThree.mileage)
 
