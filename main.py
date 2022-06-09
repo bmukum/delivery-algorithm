@@ -53,16 +53,16 @@ def distanceBetweenTruckPackages(packageID, truckAddress):
 #create truck objects from the truck class to carry the packages
 truckOne = Truck(datetime.timedelta(hours=9), "HUB", 0.0, 0)
 
-truckTwo = Truck(datetime.timedelta(hours=9), "HUB", 0.0, 0)
+truckTwo = Truck(datetime.timedelta(hours=11), "HUB", 0.0, 0)
 
 truckThree = Truck(datetime.timedelta(hours=8), "HUB", 0.0, 0)
 
 #Determine the packages that get into the different trucks
-listTruckOnePackages = [4, 40, 6, 17, 31, 32, 35, 27, 13, 39]
+listTruckOnePackages = [4, 40, 32, 13,29,1,30,20,36]#10
 
-listTruckTwoPackages = [20, 21, 1, 28, 2, 33, 7, 29, 10, 5, 37, 38, 8, 9, 30, 3]
+listTruckTwoPackages = [ 21, 28, 17, 2, 33, 7, 35, 27,39,10, 5, 38, 8, 9, 3]#14
 
-listTruckThreePackages = [14, 15, 16, 34, 26, 22, 24, 19, 36, 12, 23, 11, 18, 25]
+listTruckThreePackages = [14, 15, 16, 37, 34,31, 6, 25, 26, 22, 24, 19, 12, 23, 11, 18]#15
 
 #Function to load each truck with the list of packages from above
 def truckLoad(listOfPackages):
