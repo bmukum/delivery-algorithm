@@ -1,16 +1,19 @@
+# Hi! My name is Brandon Mukum, student ID is 010080169.
 import csv
 import math
 import datetime
 from operator import itemgetter, attrgetter
 from classes import *
 
-#load the addresses into a variable using the csv module
+
+# load the attached addresses from the addresses.csv into a variable using the csv module
 addresses = list(csv.reader(open('addresses.csv', encoding='utf-8-sig')))
 
-#load the distance into a distances variable using the csv module
+# load the distances from the distance_data.csv file into a distances variable using the csv module
 distances = list(csv.reader(open("distance_data.csv", encoding='utf-8-sig')))
 
-# function to load all the data from the package.csv file into the package hash table object
+
+# Function to load all the data from the package.csv file into the package hash table object
 def loadPackageData(fileName):
     with open(fileName) as package:
         packageData = csv.reader(package, delimiter=',')
@@ -30,12 +33,14 @@ def loadPackageData(fileName):
                                   packageDeliveryDeadline, packageWeight, packageStatus, packageDeliveryTime)
             # insert it into the hash table
             packageHashTable.insert(packageID, packageInfo)
-          
-#Create new instance of package hash table from the class, and load the package into it.
+
+
+# Create new instance of package hash table from the class, and load the package into it.
 packageHashTable = HashTable()
 loadPackageData('package.csv')
 
-#Function to return the index of an address to compute determine the packageID
+
+# Function to return the index of an address to compute determine the packageID
 def addressInd(address):
     for item in addresses:
         if address in item[1]:
@@ -43,113 +48,90 @@ def addressInd(address):
     print(address)
 
 
-#Function to calculate the distance between a package address and the truck to determine the mileage and next location to deliver
+# Function to calculate the distance between a package address and the truck to determine the mileage and next location to deliver
 def distanceBetweenTruckPackages(packageID, truckAddress):
   if distances[addressInd(packageHashTable.search(packageID).address)][addressInd(truckAddress)] == "":
     return(float(distances[addressInd(truckAddress)][addressInd(packageHashTable.search(packageID).address)]))
   else:
     return float(distances[addressInd(packageHashTable.search(packageID).address)][addressInd(truckAddress)])
-    
-#create truck objects from the truck class to carry the packages
-truckOne = Truck(datetime.timedelta(hours=8), "HUB", 0.0, 0)
 
-truckTwo = Truck(datetime.timedelta(hours=10, minutes=15), "HUB", 0.0, 0)
 
-truckThree = Truck(datetime.timedelta(hours=8), "HUB", 0.0, 0)
+# create truck objects from the truck class to carry the packages
+truckOne = Truck(datetime.timedelta(hours=9, minutes=6), "HUB", 0.0, 0)
 
-#Determine the packages that get into the different trucks
-listTruckOnePackages = [4, 40, 6, 17, 31, 32, 35, 27, 13, 39]
+truckTwo = Truck(datetime.timedelta(hours=8, minutes=6), "HUB", 0.0, 0)
 
-listTruckTwoPackages = [20, 21, 1, 28, 2, 33, 7, 29, 10, 5, 37, 38, 8, 9, 30, 3]
+truckThree = Truck(datetime.timedelta(hours=10), "HUB", 0.0, 0)
 
-listTruckThreePackages = [14, 15, 16, 34, 26, 22, 24, 19, 36, 12, 23, 11, 18, 25]
+# Determine list of all 40 package IDs
+list_pkgs = [4, 40, 6, 17, 31, 32, 35, 27, 13, 39,20, 15, 21, 1, 2, 33, 7, 29, 10, 5, 37, 38, 8, 9, 30, 3, 14, 34, 16, 26, 22, 24, 19, 36, 12, 23, 11, 18, 25,28]
 
-#Function to load each truck with the list of packages from above
+#list_b = [20, 15, 21, 1, 2, 33, 7, 29, 10, 5, 37, 38, 8, 9, 30, 3]
+#list_c = [14, 34, 16, 26, 22, 24, 19, 36, 12, 23, 11, 18, 25,28]
+
+
+# Function to load the trucks
 def truckLoad(listOfPackages):
     truckPackages = []
     for packageId in listOfPackages:
         truckPackages.append(packageHashTable.search(packageId))
     return truckPackages
-  
+
+
 # call load function to load the packages from the list of packages and sort them by delivery deadline and address
-truckOne.packages = sorted(truckLoad(listTruckOnePackages), key=lambda key: (key.delivery_deadline, key.address))
+truckOne.packages = truckLoad(list_pkgs[:10])
+truckTwo.packages = truckLoad(list_pkgs[10:26])
+truckThree.packages = sorted(truckLoad(list_pkgs[26:]), key=lambda key: ( key.delivery_deadline, key.address))
 
-truckTwo.packages = sorted(truckLoad(listTruckTwoPackages), key=lambda key: (key.delivery_deadline, key.address))
+#Function that serves the user interface with package delivery status
+def getPackageStatus(time):
+    for package in truckOne.packages:
+        truckOne.mileage += distanceBetweenTruckPackages(package.ID, truckOne.address)
+        truckOne.address = package.address
+        package.delivery_time = truckOne.time + datetime.timedelta(hours=float(truckOne.mileage / 18))
+        if ui_time < truckOne.time:
+            package.delivery_status = "In the Hub"
 
-truckThree.packages = (truckLoad(listTruckThreePackages))
+        elif package.delivery_time > ui_time:
+            package.delivery_status = "En Route"
 
+        else:
+            package.delivery_status = "Delivered"
+        print("Package", package.ID, "has a current status of ", package.delivery_status, "as of", ui_time)
 
+    for package in truckTwo.packages:
+        truckTwo.mileage += distanceBetweenTruckPackages(package.ID, truckTwo.address)
+        truckTwo.address = package.address
+        package.delivery_time = truckTwo.time + datetime.timedelta(hours=float(truckTwo.mileage / 18))
+        if ui_time < truckTwo.time:
+            package.delivery_status = "In the Hub"
 
-print("Truck One's packages")
-print("")
-for package in truckOne.packages:
-  truckOne.mileage += distanceBetweenTruckPackages(package.ID, truckOne.address)
-  truckOne.address = package.address
-  package.delivery_time = truckOne.time + datetime.timedelta(hours=float(truckOne.mileage/18))
-  print(package.ID, truckOne.mileage, package.delivery_deadline, package.address, package.delivery_time)
-  
-ui_time = datetime.timedelta(hours=9)
-for package in truckOne.packages:
-  if ui_time < truckOne.time:
-    package.delivery_status = "Loaded"
+        elif package.delivery_time > ui_time:
+            package.delivery_status = "En Route"
 
-  elif package.delivery_time > ui_time:
-    package.delivery_status = "En Route"
+        else:
+            package.delivery_status = "Delivered"
+        print("Package", package.ID, "has a current status of ", package.delivery_status, "as of", ui_time)
 
-  else:
-    package.delivery_status = "Delivered"
-  
-  #print("Package", package.ID, "is ", package.delivery_status, "at", package.delivery_time, "with deadline", package.delivery_deadline)
-print("Truck one mileage is", truckOne.mileage)
-#Truck two packages
-print("")
-print("Truck Two's packages")
-print("")
-for package in truckTwo.packages:
-  truckTwo.mileage += distanceBetweenTruckPackages(package.ID, truckTwo.address)
-  truckTwo.address = package.address
-  package.delivery_time = datetime.timedelta(hours=8) + datetime.timedelta(hours=float(truckTwo.mileage/18))
-  print(package.ID, truckTwo.mileage, package.delivery_deadline, package.address,package.delivery_time)
-  if ui_time < truckTwo.time:
-    package.delivery_status = "Loaded"
+    for package in truckThree.packages:
+        truckThree.mileage += distanceBetweenTruckPackages(package.ID, truckThree.address)
+        truckThree.address = package.address
+        package.delivery_time = truckThree.time + datetime.timedelta(hours=float(truckThree.mileage / 18))
+        if ui_time < truckThree.time:
+            package.delivery_status = "In the Hub"
 
-  elif package.delivery_time > ui_time:
-    package.delivery_status = "En Route"
+        elif package.delivery_time > ui_time:
+            package.delivery_status = "En Route"
 
-  else:
-    package.delivery_status = "Delivered"
-    #print("Package", package.ID, "is ", package.delivery_status, "at", package.delivery_time, "with deadline", package.delivery_deadline)
-print("Truck two mileage is", truckTwo.mileage)
+        else:
+            package.delivery_status = "Delivered"
 
+        print("Package", package.ID, "has a current status of ", package.delivery_status, "as of", ui_time)
 
+    print("Total mileage for all trucks is ", truckOne.mileage + truckTwo.mileage + truckThree.mileage)
 
-print("")
-print("Truck Three's packages")
-print("")
-
-for package in truckThree.packages:
-  truckThree.mileage += distanceBetweenTruckPackages(package.ID, truckThree.address)
-  truckThree.address = package.address
-  package.delivery_time = datetime.timedelta(hours=8) + datetime.timedelta(hours=float(truckThree.mileage/18))
-  print(package.ID, truckThree.mileage, package.delivery_deadline, package.address,package.delivery_time)
-  if ui_time < truckThree.time:
-    package.delivery_status = "Loaded"
-
-  elif package.delivery_time > ui_time:
-    package.delivery_status = "En Route"
-
-  else:
-    package.delivery_status = "Delivered"
-  
-  #print("Package", package.ID, "is ", package.delivery_status, "at", package.delivery_time, "with deadline", package.delivery_deadline)
-  #print("Package", package.ID, "was delivered at ", package.delivery_time)
-print("Truck three mileage is", truckThree.mileage)
-
-
-print("Total mileage is ", truckOne.mileage + truckTwo.mileage + truckThree.mileage)
-#print(package.delivery_time)
-
-#ui_time = datetime.timedelta(hours=int(input("Hours")), minutes=int(input("mins")))
+ui_time = datetime.timedelta(hours=int(input("Please enter the hour in HH (24-hour) format: ")), minutes=int(input("Please enter the minute: ")))
+getPackageStatus(ui_time)
 
 
 
