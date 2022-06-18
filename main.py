@@ -14,6 +14,7 @@ distances = list(csv.reader(open("distance_data.csv", encoding='utf-8-sig')))
 
 
 # Function to load all the data from the package.csv file into the package hash table object
+##https://srm--c.na127.visual.force.com/apex/coursearticle?Id=kA03x000001DbBGCA0
 def loadPackageData(fileName):
     with open(fileName) as package:
         packageData = csv.reader(package, delimiter=',')
@@ -49,6 +50,7 @@ def addressInd(address):
 
 
 # Function to calculate the distance between a package address and the truck to determine the mileage and next location to deliver
+# https://srm--c.na127.visual.force.com/apex/coursearticle?Id=kA03x000001DbBGCA0
 def distanceBetweenTruckPackages(packageID, truckAddress):
   if distances[addressInd(packageHashTable.search(packageID).address)][addressInd(truckAddress)] == "":
     return(float(distances[addressInd(truckAddress)][addressInd(packageHashTable.search(packageID).address)]))
@@ -63,28 +65,27 @@ truckTwo = Truck(datetime.timedelta(hours=8, minutes=6), "HUB", 0.0, 0)
 
 truckThree = Truck(datetime.timedelta(hours=10), "HUB", 0.0, 0)
 
-# Determine list of all 40 package IDs
+# Determine list of presorted package IDs
 list_pkgs = [4, 40, 6, 17, 31, 32, 35, 27, 13, 39,20, 15, 21, 1, 2, 33, 7, 29, 10, 5, 37, 38, 8, 9, 30, 3, 14, 34, 16, 26, 22, 24, 19, 36, 12, 23, 11, 18, 25,28]
 
-#list_b = [20, 15, 21, 1, 2, 33, 7, 29, 10, 5, 37, 38, 8, 9, 30, 3]
-#list_c = [14, 34, 16, 26, 22, 24, 19, 36, 12, 23, 11, 18, 25,28]
-
-
-# Function to load the trucks
+# Write the function to load the trucks
+# https://srm--c.na127.visual.force.com/apex/coursearticle?Id=kA03x000001DbBGCA0
 def truckLoad(listOfPackages):
-    truckPackages = []
+    truckPackages = [] #empty list to hold package IDs from loop
     for packageId in listOfPackages:
         truckPackages.append(packageHashTable.search(packageId))
     return truckPackages
 
 
-# call load function to load the packages from the list of packages and sort them by delivery deadline and address
+# call load function to load the packages from the list of packages and sort them by delivery deadline and address or leave in default pre-sorted order.
 truckOne.packages = truckLoad(list_pkgs[:10])
 truckTwo.packages = truckLoad(list_pkgs[10:26])
 truckThree.packages = sorted(truckLoad(list_pkgs[26:]), key=lambda key: ( key.delivery_deadline, key.address))
 
 #Function that serves the user interface with package delivery status
+# https://srm--c.na127.visual.force.com/apex/coursearticle?Id=kA03x000001DbBGCA0
 def getPackageStatus(time):
+    print("Package status and info:")
     for package in truckOne.packages:
         truckOne.mileage += distanceBetweenTruckPackages(package.ID, truckOne.address)
         truckOne.address = package.address
@@ -97,7 +98,8 @@ def getPackageStatus(time):
 
         else:
             package.delivery_status = "Delivered"
-        print("Package", package.ID, "has a current status of ", package.delivery_status, "as of", ui_time)
+        #print("")
+        print("PackageID =", package.ID, ", Address:", package.address, ", City:", package.city, ", State:",package.state, ", Zip:", package.zip, ", Delivery deadline:", package.delivery_deadline, ", Weight(kilo):", package.weight, ", Delivery Status:", package.delivery_status, ", Delivery time:",package.delivery_time)
 
     for package in truckTwo.packages:
         truckTwo.mileage += distanceBetweenTruckPackages(package.ID, truckTwo.address)
@@ -111,7 +113,7 @@ def getPackageStatus(time):
 
         else:
             package.delivery_status = "Delivered"
-        print("Package", package.ID, "has a current status of ", package.delivery_status, "as of", ui_time)
+        print("PackageID =", package.ID, ", Address:", package.address, ", City:", package.city, ", State:",package.state, ", Zip:", package.zip, ", Delivery deadline:", package.delivery_deadline, ", Weight(kilo):", package.weight, ", Delivery Status:", package.delivery_status, ", Delivery time:",package.delivery_time)
 
     for package in truckThree.packages:
         truckThree.mileage += distanceBetweenTruckPackages(package.ID, truckThree.address)
@@ -126,11 +128,12 @@ def getPackageStatus(time):
         else:
             package.delivery_status = "Delivered"
 
-        print("Package", package.ID, "has a current status of ", package.delivery_status, "as of", ui_time)
+        print("PackageID =", package.ID, ", Address:", package.address, ", City:", package.city, ", State:",package.state, ", Zip:", package.zip, ", Delivery deadline:", package.delivery_deadline, ", Weight(kilo):", package.weight, ", Delivery Status:", package.delivery_status, ", Delivery time:",package.delivery_time)
 
     print("Total mileage for all trucks is ", truckOne.mileage + truckTwo.mileage + truckThree.mileage)
 
-ui_time = datetime.timedelta(hours=int(input("Please enter the hour in HH (24-hour) format: ")), minutes=int(input("Please enter the minute: ")))
+print("Check the status and information for all packages:")
+ui_time = datetime.timedelta(hours=int(input("Please enter the hour in 24-hour format: ")), minutes=int(input("Please enter the minute: ")))
 getPackageStatus(ui_time)
 
 
